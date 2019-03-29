@@ -1,5 +1,8 @@
 use crate::ffi;
-use std::fmt::{Display, Formatter, Result as FmtResult};
+use std::{
+    error::Error as StdError,
+    fmt::{Display, Formatter, Result as FmtResult},
+};
 
 pub type Result<T> = std::result::Result<T, Error>;
 
@@ -47,27 +50,48 @@ pub enum Error {
     MappingExpectedLen(usize),
 }
 
+impl StdError for Error {
+    fn description(&self) -> &str {
+        match self {
+            Error::InvalidApplication => "Invalid Application",
+            Error::InvalidBandwidth(_) => "Invalid Bandwidth",
+            Error::InvalidSignal(_) => "Invalid Signal",
+            Error::InvalidComplexity(_) => "Invalid Complexity",
+            Error::InvalidSampleRate(_) => "Invalid Sample Rate",
+            Error::InvalidChannels(_) => "Invalid Channels",
+            Error::Opus(error_code) => error_code.description(),
+            Error::EmptyPacket => "Passed packet contained no elements",
+            Error::SignalsTooLarge => "Signals' length exceeded `std::i32::MAX`",
+            Error::PacketTooLarge => "Packet's length exceeded `std::i32::MAX`",
+            Error::InvalidBitrate(_) => "Invalid Bitrate",
+            Error::MappingExpectedLen(_) => "Wrong channel length",
+        }
+    }
+}
+
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
         write!(
             f,
             "{}",
             match self {
-                Error::InvalidApplication => "Invalid Application".to_string(),
-                Error::InvalidBandwidth(bandwidth) => format!("Invalid Bandwidth: {}", bandwidth),
-                Error::InvalidSignal(signal) => format!("Invalid Signal: {}", signal),
-                Error::InvalidComplexity(complexity) => {
-                    format!("Invalid Complexity: {}", complexity)
+                Error::InvalidApplication => self.description().to_string(),
+                Error::InvalidBandwidth(bandwidth) => {
+                    format!("{}: {}", self.description(), bandwidth)
                 }
-                Error::InvalidSampleRate(rate) => format!("Invalid Sample Rate: {}", rate),
-                Error::InvalidChannels(channels) => format!("Invalid Channels: {}", channels),
-                Error::Opus(error_code) => format!("Opus errored: {}", error_code.to_string()),
-                Error::EmptyPacket => "Passed packet contained no elements.".to_string(),
-                Error::SignalsTooLarge => "Signals' length exceeded `std::i32::MAX`.".to_string(),
-                Error::PacketTooLarge => "Packet's length exceeded `std::i32::MAX`.".to_string(),
-                Error::InvalidBitrate(rate) => format!("Invalid Bitrate: {}", rate),
+                Error::InvalidSignal(signal) => format!("{}: {}", self.description(), signal),
+                Error::InvalidComplexity(complexity) => {
+                    format!("{}: {}", self.description(), complexity)
+                }
+                Error::InvalidSampleRate(rate) => format!("{}: {}", self.description(), rate),
+                Error::InvalidChannels(channels) => format!("{}: {}", self.description(), channels),
+                Error::Opus(error_code) => format!("{}: {}", self.description(), &error_code),
+                Error::EmptyPacket => self.description().to_string(),
+                Error::SignalsTooLarge => self.description().to_string(),
+                Error::PacketTooLarge => self.description().to_string(),
+                Error::InvalidBitrate(rate) => format!("{}: {}", self.description(), rate),
                 Error::MappingExpectedLen(len) => {
-                    format!("Channel mapping was supposed to have a length of {}", len)
+                    format!("{}, expected: {}", self.description(), len)
                 }
             }
         )
@@ -98,24 +122,24 @@ pub enum ErrorCode {
 
 impl Display for ErrorCode {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(
-            f,
-            "{}",
-            match self {
-                ErrorCode::BadArgument => "Passed argument violated Opus' specified requirements.",
-                ErrorCode::BufferTooSmall => "Passed buffer was too small.",
-                ErrorCode::InternalError => "Internal error inside Opus occured.",
-                ErrorCode::InvalidPacket => "Opus received a packet violating requirements.",
-                ErrorCode::Unimplemented => {
-                    "Unimplemented code branch was attempted to be executed."
-                }
-                ErrorCode::InvalidState => "Opus-type instance is in an invalid state.",
-                ErrorCode::AllocFail => "Opus was unable to allocate memory.",
-                ErrorCode::Unknown => {
-                    "Opus returned a non-negative error, this might be a Audiopus or Opus bug."
-                }
+        write!(f, "{}", self.description())
+    }
+}
+
+impl StdError for ErrorCode {
+    fn description(&self) -> &str {
+        match self {
+            ErrorCode::BadArgument => "Passed argument violated Opus' specified requirements",
+            ErrorCode::BufferTooSmall => "Passed buffer was too small",
+            ErrorCode::InternalError => "Internal error inside Opus occured",
+            ErrorCode::InvalidPacket => "Opus received a packet violating requirements",
+            ErrorCode::Unimplemented => "Unimplemented code branch was attempted to be executed",
+            ErrorCode::InvalidState => "Opus-type instance is in an invalid state",
+            ErrorCode::AllocFail => "Opus was unable to allocate memory",
+            ErrorCode::Unknown => {
+                "Opus returned a non-negative error, this might be a Audiopus or Opus bug"
             }
-        )
+        }
     }
 }
 
