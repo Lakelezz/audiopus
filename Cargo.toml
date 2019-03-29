@@ -1,0 +1,30 @@
+[package]
+name = "audiopus"
+version = "0.1.0"
+license = "ISC"
+repository = "https://github.com/lakelezz/audiopus.git"
+authors = ["Lakelezz <lakelezz@protonmail.ch>"]
+keywords = ["audio", "opus", "codec"]
+categories = ["api-bindings", "compression", "encoding",
+	"multimedia::audio", "multimedia::encoding"]
+description = "High-level binding of the Opus Codec library."
+readme = "README.md"
+documentation = "https://docs.rs/audiopus"
+edition = "2018"
+
+[dependencies]
+audiopus_sys = "0.1"
+
+[dev-dependencies.matches]
+version = "0.1.8"
+
+[features]
+default_features = ["coder"]
+
+encoder = ["packet"]
+decoder = ["packet"]
+coder = ["encoder", "decoder"]
+
+packet = []
+repacketizer = ["packet"]
+multistream = []
