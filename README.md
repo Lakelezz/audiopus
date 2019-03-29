@@ -46,7 +46,7 @@ Add this to your `Cargo.toml`:
 
 ```toml
 [dependencies]
-audiopus = "0.1.0"
+audiopus = "0.1.1"
 ```
 [`serenity`]: https://crates.io/crates/serenity
 
