@@ -45,12 +45,10 @@ mod tests {
         soft_clip.apply(&mut signals).unwrap();
 
         signals.push(5.0);
-        signals.push(0.2);
-        signals.push(-4.0);
+        signals.push(-5000.3453);
         soft_clip.apply(&mut signals).unwrap();
 
         assert!(signals[0] <= 1.0 && signals[0] >= -1.0);
         assert!(signals[1] <= 1.0 && signals[1] >= -1.0);
-        assert!(signals[2] <= 1.0 && signals[2] >= -1.0);
     }
 }
