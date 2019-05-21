@@ -420,16 +420,16 @@ impl Encoder {
             .map(|n| n == 1)
     }
 
-    /// If set `precition_disabled` to `true`, disables almost all use of
+    /// If set `prediction_disabled` to `true`, disables almost all use of
     /// prediction, making frames almost completely independent.
     ///
     /// This reduces quality.
-    pub fn set_prediction_disabled(&mut self, precition_disabled: bool) -> Result<()> {
-        let precition_disabled = if precition_disabled { 1 } else { 0 };
+    pub fn set_prediction_disabled(&mut self, prediction_disabled: bool) -> Result<()> {
+        let prediction_disabled = if prediction_disabled { 1 } else { 0 };
 
         self.set_encoder_ctl_request(
             ffi::OPUS_SET_PREDICTION_DISABLED_REQUEST,
-            precition_disabled,
+            prediction_disabled,
         )
         .map(|_| ())
     }
