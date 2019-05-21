@@ -22,7 +22,7 @@ impl SoftClip {
         unsafe {
             ffi::opus_pcm_soft_clip(
                 signals.as_mut_ptr(),
-                signals.i32_len() + 1 / self.channels as i32,
+                signals.i32_len() / self.channels as i32,
                 self.channels as i32,
                 self.memory.as_mut_ptr(),
             )
