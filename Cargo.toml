@@ -13,7 +13,7 @@ documentation = "https://docs.rs/audiopus"
 edition = "2018"
 
 [dependencies]
-audiopus_sys = "0.1"
+audiopus_sys = { git = "https://github.com/Lakelezz/audiopus_sys", branch = "stable-changes" }
 
 [dev-dependencies.matches]
 version = "0.1.8"
