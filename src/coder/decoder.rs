@@ -11,6 +11,11 @@ pub struct Decoder {
     channels: Channels,
 }
 
+/// The Opus decoder can be sent between threads unless the Opus library
+/// has been compiled with `NONTHREADSAFE_PSEUDOSTACK` to disallow decoding in
+/// parallel.
+unsafe impl Send for Decoder {}
+
 impl GenericCtl for Decoder {
     fn final_range(&self) -> Result<u32> {
         self.decoder_ctl_request(ffi::OPUS_GET_FINAL_RANGE_REQUEST)

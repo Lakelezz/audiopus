@@ -13,9 +13,8 @@ pub struct Encoder {
 }
 
 /// The Opus encoder can be sent between threads unless the Opus library
-/// has been compiled with `NONTHREADSAFE_PSEUDOSTACK` to disallow decoding in
-/// parallel. This is not the case as embedded platforms are not supported
-/// by the Audiopus Sys binding.
+/// has been compiled with `NONTHREADSAFE_PSEUDOSTACK` to disallow encoding in
+/// parallel.
 unsafe impl Send for Encoder {}
 
 impl GenericCtl for Encoder {
