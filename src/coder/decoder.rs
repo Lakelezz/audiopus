@@ -106,19 +106,26 @@ impl Decoder {
     /// The `input` signal (interleaved if 2 channels) will be encoded into the
     /// `output` payload and on success, returns the length of the
     /// encoded packet.
-    pub fn decode_float<'a, TP, TS>(&mut self, input: TP, output: TS, fec: bool) -> Result<usize>
+    pub fn decode_float<'a, TP, TS>(&mut self, input: Option<TP>, output: TS, fec: bool) -> Result<usize>
     where
         TP: TryInto<Packet<'a>>,
         TS: TryInto<MutSignals<'a, f32>>,
     {
-        let input = input.try_into()?;
+        let (input_pointer, input_len) = if let Some(value) = input {
+            let value = value.try_into()?;
+
+            (value.as_ptr(), value.i32_len())
+        } else {
+            (std::ptr::null(), 0)
+        };
+
         let mut output = output.try_into()?;
 
         try_map_opus_error(unsafe {
             ffi::opus_decode_float(
                 self.pointer,
-                input.as_ptr(),
-                input.i32_len(),
+                input_pointer,
+                input_len,
                 output.as_mut_ptr(),
                 output.i32_len() / self.channels as i32,
                 fec as i32,
