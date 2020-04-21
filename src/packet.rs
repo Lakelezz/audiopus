@@ -1,4 +1,4 @@
-use crate::{ffi, Bandwidth, Channels, Error, Result, SampleRate, TryFrom, TryInto};
+use crate::{error::try_map_opus_error, ffi, Bandwidth, Channels, Error, Result, SampleRate, TryFrom, TryInto};
 
 fn packet_len_check(packet_buffer: &[u8]) -> Result<i32> {
     match packet_buffer {
@@ -91,7 +91,7 @@ impl<'a> TryInto<&'a MutPacket<'a>> for &'a MutPacket<'a> {
     }
 }
 
-/// Gets width of an Opus `packet`.
+/// Gets bandwidth of an Opus `packet`.
 ///
 /// **Warning**:
 /// Empty `packet` will return `Error::EmptyPacket`.
@@ -119,7 +119,7 @@ where
     }
 }
 
-/// Gets number of frames in an Opus `packet`.
+/// Gets number of samples in an Opus `packet`.
 ///
 /// **Warning**:
 /// Empty `packet` will return `Error::EmptyPacket`.
@@ -130,13 +130,15 @@ where
     let packet = packet.try_into()?;
 
     unsafe {
-        Ok(
-            ffi::opus_packet_get_nb_samples(packet.as_ptr(), packet.i32_len(), sample_rate as i32)
-                as usize,
-        )
+        try_map_opus_error(ffi::opus_packet_get_nb_samples(packet.as_ptr(), packet.i32_len(), sample_rate as i32))
+            .map(|n| n as usize)
     }
 }
 
+/// Gets number of channels in an Opus `packet`.
+///
+/// **Warning**:
+/// Empty `packet` will return `Error::EmptyPacket`.
 pub fn nb_channels<'a, I>(packet: I) -> Result<Channels>
 where
     I: TryInto<Packet<'a>>,
@@ -147,6 +149,22 @@ where
         Ok(Channels::try_from(ffi::opus_packet_get_nb_channels(
             packet.as_ptr(),
         ))?)
+    }
+}
+
+/// Gets number of frames in an Opus `packet`.
+///
+/// **Warning**:
+/// Empty `packet` will return `Error::EmptyPacket`.
+pub fn nb_frames<'a, I>(packet: I) -> Result<usize>
+where
+    I: TryInto<Packet<'a>>,
+{
+    let packet = packet.try_into()?;
+
+    unsafe {
+        try_map_opus_error(ffi::opus_packet_get_nb_frames(packet.as_ptr(), packet.i32_len()))
+            .map(|n| n as usize)
     }
 }
 

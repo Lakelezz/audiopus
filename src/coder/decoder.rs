@@ -134,6 +134,20 @@ impl Decoder {
         .map(|n| n as usize)
     }
 
+
+    /// Gets the number of samples of an Opus packet.
+    pub fn nb_samples<'a, TP>(&self, input: TP) -> Result<usize>
+    where
+        TP: TryInto<Packet<'a>>,
+    {
+        let value = input.try_into()?;
+
+        unsafe {
+            try_map_opus_error(ffi::opus_decoder_get_nb_samples(self.pointer, value.as_ptr(), value.i32_len()))
+                .map(|n| n as usize)
+        }
+    }
+
     /// Issues a CTL `request` to Opus without argument used to
     /// request a value.
     /// If Opus returns a value smaller than 0, it indicates an error.
