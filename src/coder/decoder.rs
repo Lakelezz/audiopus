@@ -1,6 +1,6 @@
 use super::GenericCtl;
 use crate::{
-    error::try_map_opus_error, ffi, packet::Packet, Channels, ErrorCode, MutSignals, Result,
+    error::try_map_opus_error, ffi, packet::Packet, Channels, Error, ErrorCode, MutSignals, Result,
     SampleRate, TryFrom, TryInto,
 };
 
@@ -75,8 +75,8 @@ impl Decoder {
     /// [`SignalsTooLarge`]: ../error/enum.Error.html#variant.SignalsTooLarge
     pub fn decode<'a, TP, TS>(&mut self, input: Option<TP>, output: TS, fec: bool) -> Result<usize>
     where
-        TP: TryInto<Packet<'a>>,
-        TS: TryInto<MutSignals<'a, i16>>,
+        TP: TryInto<Packet<'a>, Error = Error>,
+        TS: TryInto<MutSignals<'a, i16>, Error = Error>,
     {
         let (input_pointer, input_len) = if let Some(value) = input {
             let value = value.try_into()?;
@@ -106,10 +106,15 @@ impl Decoder {
     /// The `input` signal (interleaved if 2 channels) will be encoded into the
     /// `output` payload and on success, returns the length of the
     /// encoded packet.
-    pub fn decode_float<'a, TP, TS>(&mut self, input: Option<TP>, output: TS, fec: bool) -> Result<usize>
+    pub fn decode_float<'a, TP, TS>(
+        &mut self,
+        input: Option<TP>,
+        output: TS,
+        fec: bool,
+    ) -> Result<usize>
     where
-        TP: TryInto<Packet<'a>>,
-        TS: TryInto<MutSignals<'a, f32>>,
+        TP: TryInto<Packet<'a>, Error = Error>,
+        TS: TryInto<MutSignals<'a, f32>, Error = Error>,
     {
         let (input_pointer, input_len) = if let Some(value) = input {
             let value = value.try_into()?;

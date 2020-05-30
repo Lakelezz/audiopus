@@ -1,12 +1,10 @@
 //! Audiopus is a high level abstraction over the Opus library.
 //!
-//! This crate uses its own implementation of `TryInto`/`TryFrom` attempting to
+//! This crate uses `TryInto`/`TryFrom` attempting to
 //! convert to newtypes (`Packet`, `MutPacket`, and `MutSignals`) ensuring Opus'
 //! restrictions will be kept in mind by checking these on construction.
 //! Without these restrictions, crashes would occur because Opus does not know
 //! any types larger than `i32` and does not expect empty packets.
-//! Hence our own `TryInto`/`TryFrom` allows us to couple restriction-checks
-//! with actual types and yet remaining stable Rust.
 //! `Packet`, `MutPacket`, `MutSignals` implement conversions from
 //! `&Vec[T]`/`&[T]`, they do not move or destroy the original type.
 //!
@@ -32,20 +30,33 @@ pub mod softclip;
 pub use crate::error::{Error, ErrorCode, Result};
 pub use audiopus_sys as ffi;
 
-/// While `TryFrom` is nightly, we use our own
-/// implementation to stay stable.
-pub trait TryFrom<T>: Sized {
-    type Error;
+pub use tryfrom::{TryFrom, TryInto};
 
-    fn try_from(value: T) -> Result<Self>;
+#[cfg(internal_tryfrom)]
+mod tryfrom {
+    pub use std::convert::{TryFrom, TryInto};
 }
 
-/// While `TryInto` is nightly, we use our own
-/// implementation to stay stable.
-pub trait TryInto<T>: Sized {
-    type Error;
+#[cfg(not(internal_tryfrom))]
+mod tryfrom {
+    pub trait TryFrom<T>: Sized {
+        type Error;
+        fn try_from(value: T) -> Result<Self, Self::Error>;
+    }
+    pub trait TryInto<T>: Sized {
+        type Error;
+        fn try_into(self) -> Result<T, Self::Error>;
+    }
 
-    fn try_into(self) -> Result<T>;
+    impl<T, U> TryInto<U> for T
+    where
+        U: TryFrom<T>,
+    {
+        type Error = U::Error;
+        fn try_into(self) -> Result<U, Self::Error> {
+            U::try_from(self)
+        }
+    }
 }
 
 #[repr(i32)]
