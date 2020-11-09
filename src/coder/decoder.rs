@@ -106,7 +106,12 @@ impl Decoder {
     /// The `input` signal (interleaved if 2 channels) will be encoded into the
     /// `output` payload and on success, returns the length of the
     /// encoded packet.
-    pub fn decode_float<'a, TP, TS>(&mut self, input: Option<TP>, output: TS, fec: bool) -> Result<usize>
+    pub fn decode_float<'a, TP, TS>(
+        &mut self,
+        input: Option<TP>,
+        output: TS,
+        fec: bool,
+    ) -> Result<usize>
     where
         TP: TryInto<Packet<'a>>,
         TS: TryInto<MutSignals<'a, f32>>,
