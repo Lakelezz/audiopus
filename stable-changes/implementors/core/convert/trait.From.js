@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["audiopus"] = [{"text":"impl From&lt;ErrorCode&gt; for Error","synthetic":false,"types":[]},{"text":"impl From&lt;i32&gt; for ErrorCode","synthetic":false,"types":[]},{"text":"impl From&lt;Bitrate&gt; for i32","synthetic":false,"types":[]},{"text":"impl From&lt;Channels&gt; for i32","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

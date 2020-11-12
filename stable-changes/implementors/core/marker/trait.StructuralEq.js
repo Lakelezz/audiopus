@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["audiopus"] = [{"text":"impl StructuralEq for Error","synthetic":false,"types":[]},{"text":"impl StructuralEq for ErrorCode","synthetic":false,"types":[]},{"text":"impl StructuralEq for Signal","synthetic":false,"types":[]},{"text":"impl StructuralEq for Bitrate","synthetic":false,"types":[]},{"text":"impl StructuralEq for SampleRate","synthetic":false,"types":[]},{"text":"impl StructuralEq for Application","synthetic":false,"types":[]},{"text":"impl StructuralEq for Channels","synthetic":false,"types":[]},{"text":"impl StructuralEq for Bandwidth","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

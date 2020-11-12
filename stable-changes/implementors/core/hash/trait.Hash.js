@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["audiopus"] = [{"text":"impl Hash for Error","synthetic":false,"types":[]},{"text":"impl Hash for ErrorCode","synthetic":false,"types":[]},{"text":"impl Hash for Signal","synthetic":false,"types":[]},{"text":"impl Hash for Bitrate","synthetic":false,"types":[]},{"text":"impl Hash for SampleRate","synthetic":false,"types":[]},{"text":"impl Hash for Application","synthetic":false,"types":[]},{"text":"impl Hash for Channels","synthetic":false,"types":[]},{"text":"impl Hash for Bandwidth","synthetic":false,"types":[]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
