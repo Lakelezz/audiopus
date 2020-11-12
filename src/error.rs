@@ -31,7 +31,7 @@ pub enum Error {
     ///
     /// [`SampleRate`]: ../enum.SampleRate.html
     InvalidSampleRate(i32),
-    /// A value failed to match a documented [`Channel`].
+    /// A value failed to match a documented [`Channels`].
     ///
     /// [`Channels`]: ../enum.Channels.html
     InvalidChannels(i32),

@@ -462,7 +462,7 @@ impl Encoder {
     /// which still gives the encoder the freedom to reduce the bandpass when
     /// the bitrate becomes too low, for better overall quality.
     ///
-    /// [`set_max_bandwidth::Max`]: struct.Encoder.html#method.set_max_bandwidth
+    /// [`set_max_bandwidth`]: struct.Encoder.html#method.set_max_bandwidth
     pub fn set_bandwidth(&mut self, bandwidth: Bandwidth) -> Result<()> {
         self.set_encoder_ctl_request(ffi::OPUS_SET_BANDWIDTH_REQUEST, bandwidth as i32)
     }
