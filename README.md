@@ -54,8 +54,8 @@ audiopus = "0.2"
 
 [`audiopus_sys`]: https://github.com/Lakelezz/audiopus_sys.git
 
-[ci]: https://dev.azure.com/lakeware/audiopus/_build?definitionId=6
-[ci-badge]: https://img.shields.io/azure-devops/build/lakeware/9c5a7495-9549-45b5-9f18-a01634be27e2/6/master.svg?style=flat-square
+[ci]: https://github.com/Lakelezz/audiopus/actions
+[ci-badge]: https://img.shields.io/github/workflow/status/Lakelezz/audiopus/CI?style=flat-square
 
 [docs-badge]: https://img.shields.io/badge/docs-online-5023dd.svg?style=flat-square&colorB=32b6b7
 [docs]: https://docs.rs/audiopus
