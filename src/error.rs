@@ -51,50 +51,30 @@ pub enum Error {
 }
 
 impl StdError for Error {
-    fn description(&self) -> &str {
+    fn source(&self) -> Option<&(dyn StdError + 'static)> {
         match self {
-            Error::InvalidApplication => "Invalid Application",
-            Error::InvalidBandwidth(_) => "Invalid Bandwidth",
-            Error::InvalidSignal(_) => "Invalid Signal",
-            Error::InvalidComplexity(_) => "Invalid Complexity",
-            Error::InvalidSampleRate(_) => "Invalid Sample Rate",
-            Error::InvalidChannels(_) => "Invalid Channels",
-            Error::Opus(error_code) => error_code.description(),
-            Error::EmptyPacket => "Passed packet contained no elements",
-            Error::SignalsTooLarge => "Signals' length exceeded `std::i32::MAX`",
-            Error::PacketTooLarge => "Packet's length exceeded `std::i32::MAX`",
-            Error::InvalidBitrate(_) => "Invalid Bitrate",
-            Error::MappingExpectedLen(_) => "Wrong channel length",
+            Error::Opus(err) => Some(err),
+            _ => None,
         }
     }
 }
 
 impl Display for Error {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(
-            f,
-            "{}",
-            match self {
-                Error::InvalidApplication => self.description().to_string(),
-                Error::InvalidBandwidth(bandwidth) => {
-                    format!("{}: {}", self.description(), bandwidth)
-                }
-                Error::InvalidSignal(signal) => format!("{}: {}", self.description(), signal),
-                Error::InvalidComplexity(complexity) => {
-                    format!("{}: {}", self.description(), complexity)
-                }
-                Error::InvalidSampleRate(rate) => format!("{}: {}", self.description(), rate),
-                Error::InvalidChannels(channels) => format!("{}: {}", self.description(), channels),
-                Error::Opus(error_code) => format!("{}: {}", self.description(), &error_code),
-                Error::EmptyPacket => self.description().to_string(),
-                Error::SignalsTooLarge => self.description().to_string(),
-                Error::PacketTooLarge => self.description().to_string(),
-                Error::InvalidBitrate(rate) => format!("{}: {}", self.description(), rate),
-                Error::MappingExpectedLen(len) => {
-                    format!("{}, expected: {}", self.description(), len)
-                }
-            }
-        )
+        match self {
+            Error::InvalidApplication => f.write_str("Invalid Application"),
+            Error::InvalidBandwidth(bandwidth) => write!(f, "Invalid Bandwitdh: {}", bandwidth),
+            Error::InvalidSignal(signal) => write!(f, "Invalid Signal: {}", signal),
+            Error::InvalidComplexity(complexity) => write!(f, "Invalid Complexity: {}", complexity),
+            Error::InvalidSampleRate(rate) => write!(f, "Invalid Sample Rate: {}", rate),
+            Error::InvalidChannels(channels) => write!(f, "Invalid Channels: {}", channels),
+            Error::Opus(error_code) => write!(f, "{}", error_code),
+            Error::EmptyPacket => f.write_str("Passed packet contained no elements"),
+            Error::SignalsTooLarge => f.write_str("Signals' length exceeded `i32::MAX`"),
+            Error::PacketTooLarge => f.write_str("Packet's length exceeded `i32::MAX`"),
+            Error::InvalidBitrate(rate) => write!(f, "Invalid Bitrate: {}", rate),
+            Error::MappingExpectedLen(len) => write!(f, "Wrong channel length, expected: {}", len),
+        }
     }
 }
 
@@ -122,13 +102,7 @@ pub enum ErrorCode {
 
 impl Display for ErrorCode {
     fn fmt(&self, f: &mut Formatter<'_>) -> FmtResult {
-        write!(f, "{}", self.description())
-    }
-}
-
-impl StdError for ErrorCode {
-    fn description(&self) -> &str {
-        match self {
+        let s = match self {
             ErrorCode::BadArgument => "Passed argument violated Opus' specified requirements",
             ErrorCode::BufferTooSmall => "Passed buffer was too small",
             ErrorCode::InternalError => "Internal error inside Opus occured",
@@ -139,9 +113,13 @@ impl StdError for ErrorCode {
             ErrorCode::Unknown => {
                 "Opus returned a non-negative error, this might be a Audiopus or Opus bug"
             }
-        }
+        };
+
+        write!(f, "{}", s)
     }
 }
+
+impl StdError for ErrorCode {}
 
 impl From<i32> for ErrorCode {
     fn from(number: i32) -> ErrorCode {
