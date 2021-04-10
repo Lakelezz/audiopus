@@ -501,7 +501,7 @@ impl Encoder {
     ///
     /// This is a hint which helps the encoder identify silence and near-silence.
     /// It represents the number of significant bits of linear intensity below
-    /// which the signal contains ignorable quantization or other noise.
+    /// which the signal contains ignorable quantisation or other noise.
     ///
     /// For example, a depth of 14 would be an appropriate setting for G.711
     /// u-law input. A depth of 16 would be appropriate for 16-bit linear pcm
