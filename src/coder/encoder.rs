@@ -466,6 +466,54 @@ impl Encoder {
     pub fn set_bandwidth(&mut self, bandwidth: Bandwidth) -> Result<()> {
         self.set_encoder_ctl_request(ffi::OPUS_SET_BANDWIDTH_REQUEST, bandwidth as i32)
     }
+
+    /// Gets encoder's configured use of discontinuous transmission.
+    pub fn dtx(&self) -> Result<bool> {
+        self.encoder_ctl_request(ffi::OPUS_GET_DTX_REQUEST)
+            .map(|n| n == 1)
+    }
+
+    /// Configures the encoder's use of discontinuous transmission (DTX).
+    pub fn set_dtx(&mut self, dtx: bool) -> Result<()> {
+        let dtx_shall_be_enabled = if dtx {1} else {0};
+
+        self.set_encoder_ctl_request(ffi::OPUS_SET_DTX_REQUEST, dtx_shall_be_enabled)
+            .map(|_| ())
+    }
+
+    /// Enables the encoder's use of discontinuous transmission (DTX).
+    pub fn enable_dtx(&mut self) -> Result<()> {
+        self.set_dtx(true)
+    }
+
+    /// Disables the encoder's use of discontinuous transmission (DTX).
+    pub fn disable_dtx(&mut self) -> Result<()> {
+        self.set_dtx(false)
+    }
+
+    /// Gets the encoder's configured signal depth.
+    pub fn lsb_depth(&self) -> Result<u8> {
+        self.encoder_ctl_request(ffi::OPUS_GET_LSB_DEPTH_REQUEST)
+            .map(|n| n as u8)
+    }
+
+    /// Configures the depth of signal being encoded.
+    ///
+    /// This is a hint which helps the encoder identify silence and near-silence.
+    /// It represents the number of significant bits of linear intensity below
+    /// which the signal contains ignorable quantisation or other noise.
+    ///
+    /// For example, a depth of 14 would be an appropriate setting for G.711
+    /// u-law input. A depth of 16 would be appropriate for 16-bit linear pcm
+    /// input with `encode_float()`.
+    ///
+    /// When using `encode()` instead of `encode_float()`, or when libopus is
+    /// compiled for fixed-point, the encoder uses the minimum of the value set
+    /// here and the value 16.
+    pub fn set_lsb_depth(&mut self, lsb_depth: u8) -> Result<()> {
+        self.set_encoder_ctl_request(ffi::OPUS_SET_LSB_DEPTH_REQUEST, i32::from(lsb_depth))
+            .map(|_| ())
+    }
 }
 
 impl Drop for Encoder {
@@ -757,5 +805,53 @@ mod tests {
             .expect("Could not set bitrate to 512000.");
 
         assert_matches!(encoder.bitrate(), _bitrate);
+    }
+
+    #[test]
+    fn set_get_dtx() {
+        let mut encoder =
+            Encoder::new(SampleRate::Hz48000, Channels::Stereo, Application::Audio).unwrap();
+
+        assert_matches!(encoder.dtx(), Ok(false));
+
+        encoder
+            .enable_dtx()
+            .expect("Could not set dtx to true.");
+        assert_matches!(encoder.dtx(), Ok(true));
+
+        encoder
+            .disable_dtx()
+            .expect("Could not set dtx to false.");
+        assert_matches!(encoder.dtx(), Ok(false));
+    }
+
+    #[test]
+    fn set_get_lsb_depth() {
+        let mut encoder =
+            Encoder::new(SampleRate::Hz48000, Channels::Stereo, Application::Audio).unwrap();
+
+        assert_matches!(encoder.lsb_depth(), Ok(24));
+
+        encoder
+            .set_lsb_depth(16)
+            .expect("Could not set lsb depth to 16.");
+        assert_matches!(encoder.lsb_depth(), Ok(16));
+
+        encoder
+            .set_lsb_depth(8)
+            .expect("Could not set lsb depth to 8.");
+        assert_matches!(encoder.lsb_depth(), Ok(8));
+
+        assert_matches!(
+            encoder.set_lsb_depth(7),
+            Err(Error::Opus(ErrorCode::BadArgument))
+        );
+
+        assert_matches!(
+            encoder.set_lsb_depth(25),
+            Err(Error::Opus(ErrorCode::BadArgument))
+        );
+
+        assert_matches!(encoder.lsb_depth(), Ok(8));
     }
 }
