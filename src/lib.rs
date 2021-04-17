@@ -312,8 +312,13 @@ pub fn version() -> &'static str {
 
 #[cfg(test)]
 mod tests {
-    use super::{ffi, Application, Error, Signal, TryFrom};
+    use super::{ffi, version, Application, Error, Signal, TryFrom};
     use matches::assert_matches;
+
+    #[test]
+    fn try_get_version() {
+        version();
+    }
 
     #[test]
     fn signal_try_from() {
