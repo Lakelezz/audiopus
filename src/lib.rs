@@ -29,6 +29,8 @@ pub mod packet;
 pub mod repacketizer;
 pub mod softclip;
 
+use std::ffi::CStr;
+
 pub use crate::error::{Error, ErrorCode, Result};
 pub use audiopus_sys as ffi;
 
@@ -296,6 +298,16 @@ impl<'a, T> MutSignals<'a, T> {
     pub fn i32_len(&self) -> i32 {
         self.0.len() as i32
     }
+}
+
+/// Gets the libopus version string.
+///
+/// Applications may look for the substring "-fixed" in the version string to
+/// determine whether they have a fixed-point or floating-point build at runtime.
+pub fn version() -> &'static str {
+    unsafe { CStr::from_ptr(ffi::opus_get_version_string()) }
+        .to_str()
+        .unwrap()
 }
 
 #[cfg(test)]
