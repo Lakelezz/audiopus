@@ -305,7 +305,7 @@ impl<'a, T> MutSignals<'a, T> {
 /// Applications may look for the substring "-fixed" in the version string to
 /// determine whether they have a fixed-point or floating-point build at runtime.
 pub fn version() -> &'static str {
-    // SAFETY: The pointer given from the `opus_get_version_string` function will be valid
+    // The pointer given from the `opus_get_version_string` function will be valid
     // therefore we can create a `CStr` from this pointer.
     unsafe { CStr::from_ptr(ffi::opus_get_version_string()) }
         .to_str()
