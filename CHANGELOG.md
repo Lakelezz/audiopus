@@ -2,6 +2,25 @@
 
 An overview of changes:
 
+## [0.3.0]
+
+Requires `cmake` to build now.
+
+This release updates `audiopus_sys` to `0.3`, bringing following
+changes to this high-level crate:
+
+### **Added:**
+
+* Windows will build Opus instead of using pre-built Opus.
+
+### **Fixed:**
+
+* Cross-compiling should work now.
+
+### **Removed:**
+
+* Pre-built Windows binaries are no longer provided.
+
 ## [0.2.0]
 
 This release fixes an API inconsistency by introducing one breaking change.
