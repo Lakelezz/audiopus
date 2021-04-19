@@ -29,26 +29,10 @@ pub mod packet;
 pub mod repacketizer;
 pub mod softclip;
 
-use std::ffi::CStr;
+use std::{convert::{TryFrom, TryInto}, ffi::CStr};
 
 pub use crate::error::{Error, ErrorCode, Result};
 pub use audiopus_sys as ffi;
-
-/// While `TryFrom` is nightly, we use our own
-/// implementation to stay stable.
-pub trait TryFrom<T>: Sized {
-    type Error;
-
-    fn try_from(value: T) -> Result<Self>;
-}
-
-/// While `TryInto` is nightly, we use our own
-/// implementation to stay stable.
-pub trait TryInto<T>: Sized {
-    type Error;
-
-    fn try_into(self) -> Result<T>;
-}
 
 #[repr(i32)]
 #[derive(Clone, Copy, Debug, Eq, PartialEq, Hash)]

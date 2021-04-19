@@ -1,9 +1,4 @@
-use crate::{
-    error::try_map_opus_error,
-    ffi,
-    packet::{MutPacket, Packet},
-    Result, TryInto,
-};
+use crate::{Error, Result, TryInto, error::try_map_opus_error, ffi, packet::{MutPacket, Packet}};
 
 /// Returns Opus' internal `OpusRepacketizer`'s size in bytes.
 pub fn repacketizer_size() -> usize {
@@ -12,7 +7,7 @@ pub fn repacketizer_size() -> usize {
 
 pub fn multistream_packet_pad<'a, TP>(data: TP, new_len: usize, nb_streams: usize) -> Result<()>
 where
-    TP: TryInto<MutPacket<'a>>,
+    TP: TryInto<MutPacket<'a>, Error = Error>,
 {
     let mut data = data.try_into()?;
 
@@ -29,7 +24,7 @@ where
 
 pub fn multistream_packet_unpad<'a, TP>(data: TP, nb_streams: usize) -> Result<()>
 where
-    TP: TryInto<MutPacket<'a>>,
+    TP: TryInto<MutPacket<'a>, Error = Error>,
 {
     let mut data = data.try_into()?;
 
@@ -41,7 +36,7 @@ where
 
 pub fn packet_pad<'a, TP>(data: TP, new_len: i32) -> Result<()>
 where
-    TP: TryInto<MutPacket<'a>>,
+    TP: TryInto<MutPacket<'a>, Error = Error>,
 {
     let mut data = data.try_into()?;
 
@@ -51,7 +46,7 @@ where
 
 pub fn packet_unpad<'a, TP>(data: TP) -> Result<()>
 where
-    TP: TryInto<MutPacket<'a>>,
+    TP: TryInto<MutPacket<'a>, Error = Error>,
 {
     let mut data = data.try_into()?;
 
@@ -91,7 +86,7 @@ impl Repacketizer {
 
     pub fn repacketizer_out<'a, TP>(&self, data_out: TP, max_len: i32) -> Result<()>
     where
-        TP: TryInto<MutPacket<'a>>,
+        TP: TryInto<MutPacket<'a>, Error = Error>,
     {
         let mut data_out = data_out.try_into()?;
 
@@ -109,7 +104,7 @@ impl Repacketizer {
         max_len: i32,
     ) -> Result<()>
     where
-        TP: TryInto<MutPacket<'a>>,
+        TP: TryInto<MutPacket<'a>, Error = Error>,
     {
         let mut data_out = data_out.try_into()?;
 
@@ -127,7 +122,7 @@ impl Repacketizer {
 
     pub fn repacketizer_cat<'a, TP>(&self, data: TP) -> Result<()>
     where
-        TP: TryInto<Packet<'a>>,
+        TP: TryInto<Packet<'a>, Error = Error>,
     {
         let data = data.try_into()?;
 

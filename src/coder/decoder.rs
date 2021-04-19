@@ -1,8 +1,7 @@
 use super::GenericCtl;
-use crate::{
-    error::try_map_opus_error, ffi, packet::Packet, Channels, ErrorCode, MutSignals, Result,
-    SampleRate, TryFrom, TryInto,
-};
+use crate::{Channels, Error, ErrorCode, MutSignals, Result, SampleRate, error::try_map_opus_error, ffi, packet::Packet};
+use std::convert::{TryFrom, TryInto};
+
 
 /// `Decoder` to decode.
 #[derive(Debug)]
@@ -75,8 +74,8 @@ impl Decoder {
     /// [`SignalsTooLarge`]: ../error/enum.Error.html#variant.SignalsTooLarge
     pub fn decode<'a, TP, TS>(&mut self, input: Option<TP>, output: TS, fec: bool) -> Result<usize>
     where
-        TP: TryInto<Packet<'a>>,
-        TS: TryInto<MutSignals<'a, i16>>,
+        TP: TryInto<Packet<'a>, Error = Error>,
+        TS: TryInto<MutSignals<'a, i16>, Error = Error>,
     {
         let (input_pointer, input_len) = if let Some(value) = input {
             let value = value.try_into()?;
@@ -113,8 +112,8 @@ impl Decoder {
         fec: bool,
     ) -> Result<usize>
     where
-        TP: TryInto<Packet<'a>>,
-        TS: TryInto<MutSignals<'a, f32>>,
+        TP: TryInto<Packet<'a>, Error = Error>,
+        TS: TryInto<MutSignals<'a, f32>, Error = Error>,
     {
         let (input_pointer, input_len) = if let Some(value) = input {
             let value = value.try_into()?;
@@ -143,7 +142,7 @@ impl Decoder {
     /// Gets the number of samples of an Opus packet.
     pub fn nb_samples<'a, TP>(&self, input: TP) -> Result<usize>
     where
-        TP: TryInto<Packet<'a>>,
+        TP: TryInto<Packet<'a>, Error = Error>,
     {
         let value = input.try_into()?;
 

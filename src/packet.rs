@@ -83,21 +83,13 @@ impl<'a> TryInto<MutPacket<'a>> for &'a mut [u8] {
     }
 }
 
-impl<'a> TryInto<&'a MutPacket<'a>> for &'a MutPacket<'a> {
-    type Error = Error;
-
-    fn try_into(self) -> Result<&'a MutPacket<'a>> {
-        Ok(self)
-    }
-}
-
 /// Gets bandwidth of an Opus `packet`.
 ///
 /// **Warning**:
 /// Empty `packet` will return `Error::EmptyPacket`.
 pub fn bandwidth<'a, I>(packet: I) -> Result<Bandwidth>
 where
-    I: TryInto<Packet<'a>>,
+    I: TryInto<Packet<'a>, Error = Error>,
 {
     let packet = packet.try_into()?;
 
@@ -110,7 +102,7 @@ where
 /// Empty `packet` will return `Error::EmptyPacket`.
 pub fn samples_per_frame<'a, I>(packet: I, sample_rate: SampleRate) -> Result<usize>
 where
-    I: TryInto<Packet<'a>>,
+    I: TryInto<Packet<'a>, Error = Error>,
 {
     let packet = packet.try_into()?;
 
@@ -125,7 +117,7 @@ where
 /// Empty `packet` will return `Error::EmptyPacket`.
 pub fn nb_samples<'a, I>(packet: I, sample_rate: SampleRate) -> Result<usize>
 where
-    I: TryInto<Packet<'a>>,
+    I: TryInto<Packet<'a>, Error = Error>,
 {
     let packet = packet.try_into()?;
 
@@ -141,7 +133,7 @@ where
 /// Empty `packet` will return `Error::EmptyPacket`.
 pub fn nb_channels<'a, I>(packet: I) -> Result<Channels>
 where
-    I: TryInto<Packet<'a>>,
+    I: TryInto<Packet<'a>, Error = Error>,
 {
     let packet = packet.try_into()?;
 
@@ -158,7 +150,7 @@ where
 /// Empty `packet` will return `Error::EmptyPacket`.
 pub fn nb_frames<'a, I>(packet: I) -> Result<usize>
 where
-    I: TryInto<Packet<'a>>,
+    I: TryInto<Packet<'a>, Error = Error>,
 {
     let packet = packet.try_into()?;
 

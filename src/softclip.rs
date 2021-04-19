@@ -1,4 +1,4 @@
-use crate::{ffi, Channels, MutSignals, Result, TryInto};
+use crate::{Channels, Error, MutSignals, Result, TryInto, ffi};
 
 #[derive(Clone, Debug)]
 pub struct SoftClip {
@@ -16,7 +16,7 @@ impl SoftClip {
 
     /// Opus applies soft-clipping to bring a f32 signal within the
     /// [-1,1] range.
-    pub fn apply<'a>(&mut self, signals: impl TryInto<MutSignals<'a, f32>>) -> Result<()> {
+    pub fn apply<'a>(&mut self, signals: impl TryInto<MutSignals<'a, f32>, Error = Error>) -> Result<()> {
         let mut signals = signals.try_into()?;
 
         unsafe {
