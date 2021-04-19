@@ -29,6 +29,8 @@ pub mod packet;
 pub mod repacketizer;
 pub mod softclip;
 
+use std::ffi::CStr;
+
 pub use crate::error::{Error, ErrorCode, Result};
 pub use audiopus_sys as ffi;
 
@@ -298,10 +300,29 @@ impl<'a, T> MutSignals<'a, T> {
     }
 }
 
+/// Gets the libopus version string.
+///
+/// Applications may look for the substring "-fixed" in the version string to
+/// determine whether they have a fixed-point or floating-point build at runtime.
+pub fn version() -> &'static str {
+    // The pointer given from the `opus_get_version_string` function will be valid
+    // therefore we can create a `CStr` from this pointer.
+    unsafe { CStr::from_ptr(ffi::opus_get_version_string()) }
+        .to_str()
+        .unwrap()
+}
+
 #[cfg(test)]
 mod tests {
-    use super::{ffi, Application, Error, Signal, TryFrom};
+    use super::{ffi, version, Application, Error, Signal, TryFrom};
     use matches::assert_matches;
+
+    #[test]
+    fn try_get_version() {
+        // We can't actually check the contents of the string, as it will change when the version
+        // changes. By just calling the function we can ensure that the CStr conversion succeeds.
+        version();
+    }
 
     #[test]
     fn signal_try_from() {

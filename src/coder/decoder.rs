@@ -106,7 +106,12 @@ impl Decoder {
     /// The `input` signal (interleaved if 2 channels) will be encoded into the
     /// `output` payload and on success, returns the length of the
     /// encoded packet.
-    pub fn decode_float<'a, TP, TS>(&mut self, input: Option<TP>, output: TS, fec: bool) -> Result<usize>
+    pub fn decode_float<'a, TP, TS>(
+        &mut self,
+        input: Option<TP>,
+        output: TS,
+        fec: bool,
+    ) -> Result<usize>
     where
         TP: TryInto<Packet<'a>>,
         TS: TryInto<MutSignals<'a, f32>>,
@@ -132,6 +137,20 @@ impl Decoder {
             )
         })
         .map(|n| n as usize)
+    }
+
+
+    /// Gets the number of samples of an Opus packet.
+    pub fn nb_samples<'a, TP>(&self, input: TP) -> Result<usize>
+    where
+        TP: TryInto<Packet<'a>>,
+    {
+        let value = input.try_into()?;
+
+        unsafe {
+            try_map_opus_error(ffi::opus_decoder_get_nb_samples(self.pointer, value.as_ptr(), value.i32_len()))
+                .map(|n| n as usize)
+        }
     }
 
     /// Issues a CTL `request` to Opus without argument used to
