@@ -38,7 +38,7 @@ pub enum Error {
     /// An error returned from Opus containing an [`ErrorCode`] describing
     /// the cause.
     Opus(ErrorCode),
-    /// Opus is not operating empty packets.
+    /// Opus is not operating with empty packets.
     EmptyPacket,
     /// Opus' maximum `Vec` or slice length of `std::i32::MAX` has been
     /// exceeded.

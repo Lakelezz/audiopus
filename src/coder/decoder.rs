@@ -1,7 +1,9 @@
 use super::GenericCtl;
-use crate::{Channels, Error, ErrorCode, MutSignals, Result, SampleRate, error::try_map_opus_error, ffi, packet::Packet};
-use std::convert::{TryFrom, TryInto};
-
+use crate::{
+    error::try_map_opus_error, ffi, packet::Packet, Channels, ErrorCode, MutSignals, Result,
+    SampleRate,
+};
+use std::convert::TryFrom;
 
 /// `Decoder` to decode.
 #[derive(Debug)]
@@ -58,34 +60,25 @@ impl Decoder {
             return Ok(Decoder { pointer, channels });
         }
 
-        Err(ErrorCode::from(opus_code))?
+        Err(ErrorCode::from(opus_code).into())
     }
 
     /// Decodes an Opus packet as `input` and writes decoded data into `output`.
     /// Passing `None` as `input` indicates a packet loss.
     ///
     /// **Errors**:
-    /// If passed `input`'s length exceeds `std::i32::MAX`, [`PacketTooLarge`]
-    /// will be returned.
-    /// If passed `output`'s length exceeds `std::i32::MAX`, [`SignalsTooLarge`]
-    /// will be returned.
-    ///
-    /// [`PacketTooLarge`]: ../error/enum.Error.html#variant.PacketTooLarge
-    /// [`SignalsTooLarge`]: ../error/enum.Error.html#variant.SignalsTooLarge
-    pub fn decode<'a, TP, TS>(&mut self, input: Option<TP>, output: TS, fec: bool) -> Result<usize>
-    where
-        TP: TryInto<Packet<'a>, Error = Error>,
-        TS: TryInto<MutSignals<'a, i16>, Error = Error>,
-    {
+    /// Returns [Error::Opus] when Opus encountered a problem.
+    pub fn decode(
+        &mut self,
+        input: Option<Packet<'_>>,
+        mut output: MutSignals<'_, i16>,
+        fec: bool,
+    ) -> Result<usize> {
         let (input_pointer, input_len) = if let Some(value) = input {
-            let value = value.try_into()?;
-
             (value.as_ptr(), value.i32_len())
         } else {
             (std::ptr::null(), 0)
         };
-
-        let mut output = output.try_into()?;
 
         try_map_opus_error(unsafe {
             ffi::opus_decode(
@@ -105,25 +98,20 @@ impl Decoder {
     /// The `input` signal (interleaved if 2 channels) will be encoded into the
     /// `output` payload and on success, returns the length of the
     /// encoded packet.
-    pub fn decode_float<'a, TP, TS>(
+    ///
+    /// **Errors**:
+    /// Returns [Error::Opus] when Opus encountered a problem.
+    pub fn decode_float(
         &mut self,
-        input: Option<TP>,
-        output: TS,
+        input: Option<Packet<'_>>,
+        mut output: MutSignals<'_, f32>,
         fec: bool,
-    ) -> Result<usize>
-    where
-        TP: TryInto<Packet<'a>, Error = Error>,
-        TS: TryInto<MutSignals<'a, f32>, Error = Error>,
-    {
+    ) -> Result<usize> {
         let (input_pointer, input_len) = if let Some(value) = input {
-            let value = value.try_into()?;
-
             (value.as_ptr(), value.i32_len())
         } else {
             (std::ptr::null(), 0)
         };
-
-        let mut output = output.try_into()?;
 
         try_map_opus_error(unsafe {
             ffi::opus_decode_float(
@@ -138,23 +126,27 @@ impl Decoder {
         .map(|n| n as usize)
     }
 
-
     /// Gets the number of samples of an Opus packet.
-    pub fn nb_samples<'a, TP>(&self, input: TP) -> Result<usize>
-    where
-        TP: TryInto<Packet<'a>, Error = Error>,
-    {
-        let value = input.try_into()?;
-
+    ///
+    /// **Errors**:
+    /// Returns [Error::Opus] when Opus encountered a problem.
+    pub fn nb_samples(&self, input: Packet<'_>) -> Result<usize> {
         unsafe {
-            try_map_opus_error(ffi::opus_decoder_get_nb_samples(self.pointer, value.as_ptr(), value.i32_len()))
-                .map(|n| n as usize)
+            try_map_opus_error(ffi::opus_decoder_get_nb_samples(
+                self.pointer,
+                input.as_ptr(),
+                input.i32_len(),
+            ))
+            .map(|n| n as usize)
         }
     }
 
     /// Issues a CTL `request` to Opus without argument used to
     /// request a value.
     /// If Opus returns a value smaller than 0, it indicates an error.
+    ///
+    /// **Errors**:
+    /// Returns [Error::Opus] when Opus encountered a problem
     fn decoder_ctl_request(&self, request: i32) -> Result<i32> {
         let mut value = 0;
 
@@ -168,6 +160,9 @@ impl Decoder {
     /// Issues a CTL `request` to Opus accepting an additional argument used
     /// to set the `decoder`'s setting to `value`.
     /// If Opus returns a value smaller than 0, it indicates an error.
+    ///
+    /// **Errors**:
+    /// Returns [Error::Opus] when Opus encountered a problem
     fn set_decoder_ctl_request(&self, request: i32, value: i32) -> Result<()> {
         try_map_opus_error(unsafe { ffi::opus_decoder_ctl(self.pointer, request, value) })?;
 

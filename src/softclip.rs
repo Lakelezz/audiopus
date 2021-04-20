@@ -1,4 +1,4 @@
-use crate::{Channels, Error, MutSignals, Result, TryInto, ffi};
+use crate::{ffi, Channels, MutSignals, Result};
 
 #[derive(Clone, Debug)]
 pub struct SoftClip {
@@ -16,9 +16,7 @@ impl SoftClip {
 
     /// Opus applies soft-clipping to bring a f32 signal within the
     /// [-1,1] range.
-    pub fn apply<'a>(&mut self, signals: impl TryInto<MutSignals<'a, f32>, Error = Error>) -> Result<()> {
-        let mut signals = signals.try_into()?;
-
+    pub fn apply(&mut self, mut signals: MutSignals<'_, f32>) -> Result<()> {
         unsafe {
             ffi::opus_pcm_soft_clip(
                 signals.as_mut_ptr(),
@@ -36,17 +34,18 @@ impl SoftClip {
 mod tests {
     use super::SoftClip;
     use crate::Channels;
+    use std::convert::TryInto;
 
     #[test]
     fn soft_clip() {
         let mut soft_clip = SoftClip::new(Channels::Stereo);
 
         let mut signals: Vec<f32> = vec![];
-        soft_clip.apply(&mut signals).unwrap();
+        soft_clip.apply((&mut signals).try_into().unwrap()).unwrap();
 
         signals.push(5.0);
         signals.push(-5000.3453);
-        soft_clip.apply(&mut signals).unwrap();
+        soft_clip.apply((&mut signals).try_into().unwrap()).unwrap();
 
         assert!(signals[0] <= 1.0 && signals[0] >= -1.0);
         assert!(signals[1] <= 1.0 && signals[1] >= -1.0);

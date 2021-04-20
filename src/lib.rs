@@ -29,7 +29,10 @@ pub mod packet;
 pub mod repacketizer;
 pub mod softclip;
 
-use std::{convert::{TryFrom, TryInto}, ffi::CStr};
+use std::{
+    convert::{TryFrom, TryInto},
+    ffi::CStr,
+};
 
 pub use crate::error::{Error, ErrorCode, Result};
 pub use audiopus_sys as ffi;
@@ -234,40 +237,26 @@ impl TryFrom<i32> for Bandwidth {
 ///
 /// **Info**:
 /// This type is only verifying that Opus' requirement are not violated.
+#[derive(Debug)]
 pub struct MutSignals<'a, T>(&'a mut [T]);
 
-impl<'a, T> TryInto<MutSignals<'a, T>> for &'a mut [T] {
+impl<'a, T> TryFrom<&'a mut [T]> for MutSignals<'a, T> {
     type Error = Error;
 
-    /// Fails if passed `self`'s length is greater than `std::i32::MAX`.
-    fn try_into(self) -> Result<MutSignals<'a, T>> {
-        if self.len() > std::i32::MAX as usize {
+    fn try_from(value: &'a mut [T]) -> Result<Self> {
+        if value.len() > std::i32::MAX as usize {
             return Err(Error::SignalsTooLarge);
         }
 
-        Ok(MutSignals(self))
+        Ok(Self(value))
     }
 }
 
-impl<'a, T> TryInto<MutSignals<'a, T>> for &'a mut Vec<T> {
+impl<'a, T> TryFrom<&'a mut Vec<T>> for MutSignals<'a, T> {
     type Error = Error;
 
-    /// Fails if passed `self`'s length is greater than `std::i32::MAX`.
-    fn try_into(self) -> Result<MutSignals<'a, T>> {
-        if self.len() > std::i32::MAX as usize {
-            return Err(Error::SignalsTooLarge);
-        }
-
-        Ok(MutSignals(self))
-    }
-}
-
-impl<'a, T> TryInto<MutSignals<'a, T>> for &'a mut MutSignals<'a, T> {
-    type Error = Error;
-
-    /// Conversion from `MutSignals` to `MutSignals` should never fail.
-    fn try_into(self) -> Result<MutSignals<'a, T>> {
-        Ok(MutSignals(self.0))
+    fn try_from(value: &'a mut Vec<T>) -> Result<Self> {
+        value.as_mut_slice().try_into()
     }
 }
 

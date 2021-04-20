@@ -96,7 +96,7 @@ impl Encoder {
             return Ok(Encoder { pointer, channels });
         }
 
-        Err(ErrorCode::from(opus_code))?
+        Err(ErrorCode::from(opus_code).into())
     }
 
     /// Issues a CTL get-`request` to Opus.
@@ -475,7 +475,7 @@ impl Encoder {
 
     /// Configures the encoder's use of discontinuous transmission (DTX).
     pub fn set_dtx(&mut self, dtx: bool) -> Result<()> {
-        let dtx_shall_be_enabled = if dtx {1} else {0};
+        let dtx_shall_be_enabled = if dtx { 1 } else { 0 };
 
         self.set_encoder_ctl_request(ffi::OPUS_SET_DTX_REQUEST, dtx_shall_be_enabled)
             .map(|_| ())
@@ -814,14 +814,10 @@ mod tests {
 
         assert_matches!(encoder.dtx(), Ok(false));
 
-        encoder
-            .enable_dtx()
-            .expect("Could not set dtx to true.");
+        encoder.enable_dtx().expect("Could not set dtx to true.");
         assert_matches!(encoder.dtx(), Ok(true));
 
-        encoder
-            .disable_dtx()
-            .expect("Could not set dtx to false.");
+        encoder.disable_dtx().expect("Could not set dtx to false.");
         assert_matches!(encoder.dtx(), Ok(false));
     }
 

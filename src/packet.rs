@@ -1,4 +1,7 @@
-use crate::{error::try_map_opus_error, ffi, Bandwidth, Channels, Error, Result, SampleRate, TryFrom, TryInto};
+use crate::{
+    error::try_map_opus_error, ffi, Bandwidth, Channels, Error, Result, SampleRate, TryFrom,
+    TryInto,
+};
 
 fn packet_len_check(packet_buffer: &[u8]) -> Result<i32> {
     match packet_buffer {
@@ -13,6 +16,7 @@ fn packet_len_check(packet_buffer: &[u8]) -> Result<i32> {
 /// A newtype around `&[u8]` to guarantee:
 /// - Minimum one element: A packet cannot be empty.
 /// - Limited size: A packet's length may not exceed `std::i32::MAX`.
+#[derive(Debug)]
 pub struct Packet<'a>(&'a [u8]);
 
 impl<'a> Packet<'a> {
@@ -28,32 +32,25 @@ impl<'a> Packet<'a> {
     }
 }
 
-impl<'a> TryInto<Packet<'a>> for &'a Vec<u8> {
+impl<'a> TryFrom<&'a Vec<u8>> for Packet<'a> {
     type Error = Error;
 
-    fn try_into(self) -> Result<Packet<'a>> {
-        self[..].try_into()
+    fn try_from(value: &'a Vec<u8>) -> Result<Self> {
+        value.as_slice().try_into()
     }
 }
 
-impl<'a> TryInto<Packet<'a>> for &'a [u8] {
+impl<'a> TryFrom<&'a [u8]> for Packet<'a> {
     type Error = Error;
 
-    fn try_into(self) -> Result<Packet<'a>> {
-        packet_len_check(self).map(|_| Packet(self))
-    }
-}
-
-impl<'a> TryInto<Packet<'a>> for &'a Packet<'a> {
-    type Error = Error;
-
-    fn try_into(self) -> Result<Packet<'a>> {
-        Ok(Packet(self.0))
+    fn try_from(value: &'a [u8]) -> Result<Packet<'a>> {
+        packet_len_check(value).map(|_| Self(value))
     }
 }
 
 /// A newtype around `&mut [u8]` to guarantee that accessing length on the
 /// underlying buffer is checked each time.
+#[derive(Debug)]
 pub struct MutPacket<'a>(&'a mut [u8]);
 
 impl<'a> MutPacket<'a> {
@@ -67,45 +64,35 @@ impl<'a> MutPacket<'a> {
     }
 }
 
-impl<'a> TryInto<MutPacket<'a>> for &'a mut Vec<u8> {
+impl<'a> TryFrom<&'a mut Vec<u8>> for MutPacket<'a> {
     type Error = Error;
 
-    fn try_into(self) -> Result<MutPacket<'a>> {
-        self.as_mut_slice().try_into()
+    fn try_from(value: &'a mut Vec<u8>) -> Result<Self> {
+        value.as_mut_slice().try_into()
     }
 }
 
-impl<'a> TryInto<MutPacket<'a>> for &'a mut [u8] {
+impl<'a> TryFrom<&'a mut [u8]> for MutPacket<'a> {
     type Error = Error;
 
-    fn try_into(self) -> Result<MutPacket<'a>> {
-        packet_len_check(self).map(move |_| MutPacket(self))
+    fn try_from(value: &'a mut [u8]) -> Result<Self> {
+        packet_len_check(value).map(move |_| Self(value))
     }
 }
 
 /// Gets bandwidth of an Opus `packet`.
 ///
-/// **Warning**:
+/// **Errors**:
 /// Empty `packet` will return `Error::EmptyPacket`.
-pub fn bandwidth<'a, I>(packet: I) -> Result<Bandwidth>
-where
-    I: TryInto<Packet<'a>, Error = Error>,
-{
-    let packet = packet.try_into()?;
-
-    unsafe { Bandwidth::try_from(ffi::opus_packet_get_bandwidth(packet.as_ptr())) }
+pub fn bandwidth(packet: Packet<'_>) -> Result<Bandwidth> {
+    unsafe { ffi::opus_packet_get_bandwidth(packet.as_ptr()) }.try_into()
 }
 
 /// Gets number of samples per frame of an Opus `packet`.
 ///
-/// **Warning**:
+/// **Errors**:
 /// Empty `packet` will return `Error::EmptyPacket`.
-pub fn samples_per_frame<'a, I>(packet: I, sample_rate: SampleRate) -> Result<usize>
-where
-    I: TryInto<Packet<'a>, Error = Error>,
-{
-    let packet = packet.try_into()?;
-
+pub fn samples_per_frame(packet: Packet<'_>, sample_rate: SampleRate) -> Result<usize> {
     unsafe {
         Ok(ffi::opus_packet_get_samples_per_frame(packet.as_ptr(), sample_rate as i32) as usize)
     }
@@ -113,30 +100,24 @@ where
 
 /// Gets number of samples in an Opus `packet`.
 ///
-/// **Warning**:
+/// **Errors**:
 /// Empty `packet` will return `Error::EmptyPacket`.
-pub fn nb_samples<'a, I>(packet: I, sample_rate: SampleRate) -> Result<usize>
-where
-    I: TryInto<Packet<'a>, Error = Error>,
-{
-    let packet = packet.try_into()?;
-
+pub fn nb_samples(packet: Packet<'_>, sample_rate: SampleRate) -> Result<usize> {
     unsafe {
-        try_map_opus_error(ffi::opus_packet_get_nb_samples(packet.as_ptr(), packet.i32_len(), sample_rate as i32))
-            .map(|n| n as usize)
+        try_map_opus_error(ffi::opus_packet_get_nb_samples(
+            packet.as_ptr(),
+            packet.i32_len(),
+            sample_rate as i32,
+        ))
+        .map(|n| n as usize)
     }
 }
 
 /// Gets number of channels in an Opus `packet`.
 ///
-/// **Warning**:
+/// **Errors**:
 /// Empty `packet` will return `Error::EmptyPacket`.
-pub fn nb_channels<'a, I>(packet: I) -> Result<Channels>
-where
-    I: TryInto<Packet<'a>, Error = Error>,
-{
-    let packet = packet.try_into()?;
-
+pub fn nb_channels(packet: Packet<'_>) -> Result<Channels> {
     unsafe {
         Ok(Channels::try_from(ffi::opus_packet_get_nb_channels(
             packet.as_ptr(),
@@ -146,50 +127,52 @@ where
 
 /// Gets number of frames in an Opus `packet`.
 ///
-/// **Warning**:
-/// Empty `packet` will return `Error::EmptyPacket`.
-pub fn nb_frames<'a, I>(packet: I) -> Result<usize>
-where
-    I: TryInto<Packet<'a>, Error = Error>,
-{
-    let packet = packet.try_into()?;
-
+/// **Errors**:
+/// Empty `packet` will return [`Error::EmptyPacket`].
+pub fn nb_frames(packet: Packet<'_>) -> Result<usize> {
     unsafe {
-        try_map_opus_error(ffi::opus_packet_get_nb_frames(packet.as_ptr(), packet.i32_len()))
-            .map(|n| n as usize)
+        try_map_opus_error(ffi::opus_packet_get_nb_frames(
+            packet.as_ptr(),
+            packet.i32_len(),
+        ))
+        .map(|n| n as usize)
     }
 }
 
 #[cfg(test)]
 mod tests {
     use super::bandwidth;
-    use crate::{Bandwidth, Error};
+    use crate::{Bandwidth, Error, packet::Packet};
     use matches::assert_matches;
 
     #[test]
+    /// We verify the `TryFrom`-impl for `Packet` by creating and then
+    /// converting from `Vec`s that meet and violate the contract.
     fn packet_bandwidth() {
+        use std::convert::TryFrom;
+
         let empty_packet = vec![];
-        let empty_packet_bandwidth = bandwidth(&empty_packet);
+        let empty_packet_bandwidth = Packet::try_from(&empty_packet);
         assert_matches!(empty_packet_bandwidth, Err(Error::EmptyPacket));
 
         let narrow_packet = vec![1, 2, 3];
-        let narrow_packet_bandwidth = bandwidth(&narrow_packet);
+        let narrow_packet_bandwidth = bandwidth(Packet::try_from(&narrow_packet).unwrap());
         assert_matches!(narrow_packet_bandwidth, Ok(Bandwidth::Narrowband));
 
         let mediumband_packet = vec![50];
-        let mediumband_packet_bandwidth = bandwidth(&mediumband_packet);
+        let mediumband_packet_bandwidth = bandwidth(Packet::try_from(&mediumband_packet).unwrap());
         assert_matches!(mediumband_packet_bandwidth, Ok(Bandwidth::Mediumband));
 
         let wideband_packet = vec![80];
-        let wideband_packet_bandwidth = bandwidth(&wideband_packet);
+        let wideband_packet_bandwidth = bandwidth(Packet::try_from(&wideband_packet).unwrap());
         assert_matches!(wideband_packet_bandwidth, Ok(Bandwidth::Wideband));
 
         let superwideband_packet = vec![200];
-        let superwideband_bandwidth = bandwidth(&superwideband_packet);
+        let superwideband_bandwidth = bandwidth(Packet::try_from(&superwideband_packet).unwrap());
         assert_matches!(superwideband_bandwidth, Ok(Bandwidth::Superwideband));
 
         let fullband_packet = vec![255];
-        let fullband_bandwidth = bandwidth(&fullband_packet);
+        let fullband_bandwidth = bandwidth(Packet::try_from(&fullband_packet).unwrap());
         assert_matches!(fullband_bandwidth, Ok(Bandwidth::Fullband));
     }
 }
