@@ -9,6 +9,11 @@ Requires `cmake` to build now.
 This release updates `audiopus_sys` to `0.3`, bringing following
 changes to this high-level crate:
 
+### **Changed:**
+
+* The API now expects you to provide the converted structures instead of
+accepting the convert trait `TryInto`.
+
 ### **Added:**
 
 * Windows will build Opus instead of using pre-built Opus.
