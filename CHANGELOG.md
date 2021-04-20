@@ -3,20 +3,18 @@
 An overview of changes:
 
 ## [0.3.0]
-
-Requires `cmake` to build now.
+*These notes include a [little upgrade guide below](##Upgrading).*
 
 This release updates `audiopus_sys` to `0.3`, bringing following
 changes to this high-level crate:
 
 ### **Changed:**
+* **Important**: `cmake` is now required to build Opus.
 
-* The API now expects you to provide the converted structures instead of
-accepting the convert trait `TryInto`.
+* The API now expects you to provide the already converted structures instead of
+accepting a type implementing `TryInto` for the structure.
 
-### **Added:**
-
-* Windows will build Opus instead of using pre-built Opus.
+* Windows will build Opus instead of using a pre-built version.
 
 ### **Fixed:**
 
@@ -25,6 +23,48 @@ accepting the convert trait `TryInto`.
 ### **Removed:**
 
 * Pre-built Windows binaries are no longer provided.
+
+### **Upgrading:**
+Arguments for the methods in `audiopus` use newtypes verifying whether
+constraints are upheld.
+
+This new update requires the API-user to provide these
+structures instead of passing a type that would `TryInto` the structure.
+However this can be done by using `TryFrom` or `TryInto`.
+
+Constructing them via `T::try_from`:
+
+```rust
+let mut signals = MutSignals::try_from(&mut signals)?;
+```
+
+or by converting them inside the method via `value.try_into()?`:
+
+```rust
+soft_clip.apply(&(frames).try_into()?)?;
+```
+
+Let's look at code on how to use the old `v0.2` and compare it to new `v0.3`
+
+Old `v0.2`:
+```rust
+    let mut soft_clip = SoftClip::new(Channels::Stereo);
+
+    let mut signals: Vec<f32> = vec![];
+    /// The raw data is being processed inside the method.
+    soft_clip.apply(signals)?;
+```
+
+New `v0.3`:
+```rust
+    let mut soft_clip = SoftClip::new(Channels::Stereo);
+
+    let mut signals: Vec<f32> = vec![];
+
+    soft_clip.apply((&signals).try_into()?)?;
+```
+This optimises for compile time – as generics have been eliminated – improves the API clarity, and it allows the
+user to create and handle the structure construction errors one-by-one.
 
 ## [0.2.0]
 
