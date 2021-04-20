@@ -22,6 +22,12 @@
 //! Audiopus aims to never panic or crash when interacting with Opus,
 //! if either occurs, consider this a bug.
 #![deny(rust_2018_idioms)]
+#![deny(clippy::all)]
+#![deny(clippy::pedantic)]
+#![deny(clippy::nursery)]
+#![deny(clippy::cargo)]
+// TODO: Document all public items.
+// #![deny(missing_docs)]
 
 pub mod coder;
 pub mod error;
