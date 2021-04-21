@@ -142,7 +142,7 @@ pub fn nb_frames(packet: Packet<'_>) -> Result<usize> {
 #[cfg(test)]
 mod tests {
     use super::bandwidth;
-    use crate::{Bandwidth, Error, packet::Packet};
+    use crate::{packet::Packet, Bandwidth, Error};
     use matches::assert_matches;
 
     #[test]

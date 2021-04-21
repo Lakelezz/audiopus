@@ -68,6 +68,8 @@ impl Decoder {
     ///
     /// **Errors**:
     /// Returns [Error::Opus] when Opus encountered a problem.
+    ///
+    /// [Error::Opus]: crate::error::Error::Opus
     pub fn decode(
         &mut self,
         input: Option<Packet<'_>>,
@@ -101,6 +103,8 @@ impl Decoder {
     ///
     /// **Errors**:
     /// Returns [Error::Opus] when Opus encountered a problem.
+    ///
+    /// [Error::Opus]: crate::error::Error::Opus
     pub fn decode_float(
         &mut self,
         input: Option<Packet<'_>>,
@@ -130,6 +134,8 @@ impl Decoder {
     ///
     /// **Errors**:
     /// Returns [Error::Opus] when Opus encountered a problem.
+    ///
+    /// [Error::Opus]: crate::error::Error::Opus
     pub fn nb_samples(&self, input: Packet<'_>) -> Result<usize> {
         unsafe {
             try_map_opus_error(ffi::opus_decoder_get_nb_samples(
@@ -147,6 +153,8 @@ impl Decoder {
     ///
     /// **Errors**:
     /// Returns [Error::Opus] when Opus encountered a problem
+    ///
+    /// [Error::Opus]: crate::error::Error::Opus
     fn decoder_ctl_request(&self, request: i32) -> Result<i32> {
         let mut value = 0;
 
@@ -163,6 +171,8 @@ impl Decoder {
     ///
     /// **Errors**:
     /// Returns [Error::Opus] when Opus encountered a problem
+    ///
+    /// [Error::Opus]: crate::error::Error::Opus
     fn set_decoder_ctl_request(&self, request: i32, value: i32) -> Result<()> {
         try_map_opus_error(unsafe { ffi::opus_decoder_ctl(self.pointer, request, value) })?;
 

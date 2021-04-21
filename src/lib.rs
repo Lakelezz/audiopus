@@ -1,26 +1,35 @@
 //! Audiopus is a high level abstraction over the Opus library.
 //!
-//! This crate uses its own implementation of `TryInto`/`TryFrom` attempting to
-//! convert to newtypes (`Packet`, `MutPacket`, and `MutSignals`) ensuring Opus'
-//! restrictions will be kept in mind by checking these on construction.
-//! Without these restrictions, crashes would occur because Opus does not know
-//! any types larger than `i32` and does not expect empty packets.
-//! Hence our own `TryInto`/`TryFrom` allows us to couple restriction-checks
-//! with actual types and yet remaining stable Rust.
-//! `Packet`, `MutPacket`, `MutSignals` implement conversions from
-//! `&Vec[T]`/`&[T]`, they do not move or destroy the original type.
+//! This crate uses [`TryFrom`] to prevent the incorrect use of Opus.
+//! The API accepts newtypes such as [`Packet`], [`MutPacket`],
+//! and [`MutSignals`]. The implementation of [`TryFrom`] ensures Opus'
+//! restrictions will be kept in mind by checking these on conversion.
+//! Without these restrictions, crashes may occur among others, because Opus
+//! does not know any types larger than `i32` and does not expect empty packets.
 //!
-//! A `Packet` references an underlying buffer of type `&[u8]`, it cannot be
-//! empty and not longer than `std::i32::MAX`.
+//! [`Packet`], [`MutPacket`], [`MutSignals`] implement conversions from
+//! `&Vec[T]` and `&[T]`, they borrow only. The `Mut` notes when the newtype
+//! borrows mutably.
 //!
-//! Same goes for `MutPacket`, except the type mutably borrows the buffer thus
-//! checks length before handing out the length-value as `Result`.
+//! A [`Packet`] references an underlying buffer of type `&[u8]`, it cannot be
+//! empty and not longer than [`std::i32::MAX`].
 //!
-//! `MutSignals` wraps around a generic buffer and represents Opus' output.
+//! Same goes for [`MutPacket`], except the type mutably borrows the buffer thus
+//! the length may change after passing it to Opus. Hence the length of this
+//! type will be returned as [`Result`].
+//!
+//! [`MutSignals`] wraps around a generic buffer and represents Opus' output.
 //! E.g. when encoding, Opus will fill the buffer with the encoded data.
 //!
 //! Audiopus aims to never panic or crash when interacting with Opus,
-//! if either occurs, consider this a bug.
+//! if either occurs, consider this a bug and please report it on the GitHub!
+//!
+//! [`Packet`]: crate::packet::Packet
+//! [`MutPacket`]: crate::packet::MutPacket
+//! [`MutSignals`]: crate::MutSignals
+//! [`TryFrom`]: std::convert::TryFrom
+//! [`Result`]: std::result::Result
+//!
 #![deny(rust_2018_idioms)]
 #![deny(clippy::all)]
 #![deny(clippy::pedantic)]
