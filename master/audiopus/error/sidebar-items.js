@@ -1,0 +1,1 @@
+initSidebarItems({"enum":[["Error",""],["ErrorCode",""]],"fn":[["try_map_opus_error","Checks if the `ffi_return_value` is documented by Opus. Returns `Error` if value is negative."]],"type":[["Result",""]]});
