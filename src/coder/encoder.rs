@@ -136,7 +136,7 @@ impl Encoder {
     /// The `input` signal (interleaved if 2 channels) will be encoded into the
     /// `output` payload and on success returns the length of the
     /// encoded packet.
-    pub fn encode(&self, input: &[i16], output: &mut [u8]) -> Result<usize> {
+    pub fn encode(&mut self, input: &[i16], output: &mut [u8]) -> Result<usize> {
         try_map_opus_error(unsafe {
             ffi::opus_encode(
                 self.pointer,
@@ -154,7 +154,7 @@ impl Encoder {
     /// The `input` signal (interleaved if 2 channels) will be encoded into the
     /// `output` payload and on success, returns the length of the
     /// encoded packet.
-    pub fn encode_float(&self, input: &[f32], output: &mut [u8]) -> Result<usize> {
+    pub fn encode_float(&mut self, input: &[f32], output: &mut [u8]) -> Result<usize> {
         try_map_opus_error(unsafe {
             ffi::opus_encode_float(
                 self.pointer,
@@ -710,7 +710,7 @@ mod tests {
 
     #[test]
     fn encoding() {
-        let stereo_encoder =
+        let mut stereo_encoder =
             Encoder::new(SampleRate::Hz48000, Channels::Stereo, Application::Audio).unwrap();
 
         // 48000Hz * 1 channel * 20 ms / 1000
@@ -721,7 +721,7 @@ mod tests {
         let len = stereo_encoder.encode(&input, &mut output).unwrap();
         assert_eq!(&output[..len], &[252, 255, 254]);
 
-        let mono_encoder =
+        let mut mono_encoder =
             Encoder::new(SampleRate::Hz48000, Channels::Mono, Application::Audio).unwrap();
 
         // 48000Hz * 1 channel * 20 ms / 1000
