@@ -1,0 +1,3 @@
+(function() {var implementors = {
+"audiopus":[["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/error/trait.Error.html\" title=\"trait core::error::Error\">Error</a> for <a class=\"enum\" href=\"audiopus/error/enum.Error.html\" title=\"enum audiopus::error::Error\">Error</a>"],["impl <a class=\"trait\" href=\"https://doc.rust-lang.org/nightly/core/error/trait.Error.html\" title=\"trait core::error::Error\">Error</a> for <a class=\"enum\" href=\"audiopus/error/enum.ErrorCode.html\" title=\"enum audiopus::error::ErrorCode\">ErrorCode</a>"]]
+};if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()

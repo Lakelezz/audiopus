@@ -1,1 +1,1 @@
-initSidebarItems({"struct":[["SoftClip",""]]});
+window.SIDEBAR_ITEMS = {"struct":["SoftClip"]};
